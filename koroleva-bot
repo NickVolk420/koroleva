@@ -1,9 +1,15 @@
 import os
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
 import requests
 
+SECRET_PASSWORD = "royalpass"
 HF_TOKEN = os.getenv("HF_TOKEN")
 
-async def chat_with_ai(text):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Привітствую! Я Королева 👑")
+
+async def chat_with_ai(text: str):
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
     payload = {"inputs": text}
     response = requests.post(
@@ -14,51 +20,40 @@ async def chat_with_ai(text):
     data = response.json()
     return data[0]["generated_text"]
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
-
-async def secret_or_ai(update, context):
-    text = update.message.text.strip()
-    if text == "снимай труси":
-        # показати меню
-        ...
-    else:
-        reply = await chat_with_ai(text)
-        await update.message.reply_text(f"Королева каже: {reply}")
-
-
-async def secret(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def secret_or_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
     if text == SECRET_PASSWORD:
         keyboard = [
-            [InlineKeyboardButton("Тайные знания 👑", callback_data='knowledge')],
-            [InlineKeyboardButton("Секретные команды 🗡️", callback_data='commands')],
-            [InlineKeyboardButton("Сокровища 💎", callback_data='treasures')]
+            [InlineKeyboardButton("Тайні знання 👑", callback_data='knowledge')],
+            [InlineKeyboardButton("Секретні команди 🗡️", callback_data='commands')],
+            [InlineKeyboardButton("Скарби 💎", callback_data='treasures')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await update.message.reply_text("Добро пожаловать в тайное меню:", reply_markup=reply_markup)
+        await update.message.reply_text("Добро пожаловать в тайне меню:", reply_markup=reply_markup)
     else:
-        await update.message.reply_text("Королева не доверяет тебе...")
+        reply = await chat_with_ai(text)
+        await update.message.reply_text(f"Королева каже: {reply}")
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     if query.data == 'knowledge':
-        await query.edit_message_text(text="📜 Тайные знания: будь мудр и осторожен.")
+        await query.edit_message_text(text="📜 Тайні знання: будь мудрим.")
     elif query.data == 'commands':
-        await query.edit_message_text(text="🗡️ Секретные команды: сила в твоих руках.")
+        await query.edit_message_text(text="🗡️ Секретні команди: сила у твоїх руках.")
     elif query.data == 'treasures':
-        await query.edit_message_text(text="💎 Сокровища: ценность скрыта в знании.")
+        await query.edit_message_text(text="💎 Скарби: цінність у знанні.")
 
 def main():
     TOKEN = os.getenv("BOT_TOKEN")
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, secret))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, secret_or_ai))
     app.add_handler(CallbackQueryHandler(button))
 
     app.run_polling()
 
 if __name__ == "__main__":
     main()
+
