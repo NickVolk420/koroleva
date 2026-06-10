@@ -1,7 +1,14 @@
 import os
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
 import aiohttp
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    CallbackQueryHandler,
+    ContextTypes,
+    filters
+)
 
 SECRET_PASSWORD = "royalpass"
 HF_TOKEN = os.getenv("HF_TOKEN")
@@ -19,7 +26,13 @@ async def chat_with_ai(text: str):
             json=payload
         ) as response:
             data = await response.json()
-            return data[0]["generated_text"]
+            # Hugging Face може повернути різні формати, перевіримо
+            if isinstance(data, list) and "generated_text" in data[0]:
+                return data[0]["generated_text"]
+            elif "generated_text" in data:
+                return data["generated_text"]
+            else:
+                return "🤔 Королева мовчить..."
 
 async def secret_or_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
@@ -53,14 +66,13 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, secret_or_ai))
     app.add_handler(CallbackQueryHandler(button))
 
-    # Використовуємо webhook замість polling
+    # Railway → запускаємо через webhook
     app.run_webhook(
         listen="0.0.0.0",
         port=int(os.getenv("PORT", "8080")),
         url_path=TOKEN,
         webhook_url=f"https://{os.getenv('RAILWAY_STATIC_URL')}/{TOKEN}"
     )
-
 
 if __name__ == "__main__":
     main()
