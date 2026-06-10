@@ -14,7 +14,7 @@ async def chat_with_ai(text: str):
     payload = {"inputs": text}
     async with aiohttp.ClientSession() as session:
         async with session.post(
-            "https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill",
+            "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium",
             headers=headers,
             json=payload
         ) as response:
