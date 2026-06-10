@@ -1,7 +1,7 @@
 import os
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
-import requests
+import aiohttp
 
 SECRET_PASSWORD = "royalpass"
 HF_TOKEN = os.getenv("HF_TOKEN")
@@ -12,13 +12,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def chat_with_ai(text: str):
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
     payload = {"inputs": text}
-    response = requests.post(
-        "https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill",
-        headers=headers,
-        json=payload
-    )
-    data = response.json()
-    return data[0]["generated_text"]
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+            "https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill",
+            headers=headers,
+            json=payload
+        ) as response:
+            data = await response.json()
+            return data[0]["generated_text"]
 
 async def secret_or_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
@@ -31,7 +32,7 @@ async def secret_or_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_text("Добро пожаловать в тайне меню:", reply_markup=reply_markup)
     else:
-        reply = await chat_with_ai(text)   # ← тут виклик до Hugging Face
+        reply = await chat_with_ai(text)
         await update.message.reply_text(f"Королева каже: {reply}")
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -56,4 +57,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
