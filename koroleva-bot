@@ -12,7 +12,7 @@ from telegram.ext import (
 
 SECRET_PASSWORD = "royalpass"
 HF_TOKEN = os.getenv("HF_TOKEN")
-
+webhook_url=f"https://koroleva-production.up.railway.app/8813585476:AAH8DYfe6QOxKFJul0FBBygx-bCNAmTu69A
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Привітствую! Я Королева 👑")
 
