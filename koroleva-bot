@@ -1,13 +1,13 @@
 import os
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, filters
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
 
-SECRET_PASSWORD = "снимай труси"
+SECRET_PASSWORD = "royalpass"
 
-def start(update, context):
-    update.message.reply_text("Приветствую! Я Королева 👑")
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Приветствую! Я Королева 👑")
 
-def secret(update, context):
+async def secret(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
     if text == SECRET_PASSWORD:
         keyboard = [
@@ -16,29 +16,29 @@ def secret(update, context):
             [InlineKeyboardButton("Сокровища 💎", callback_data='treasures')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        update.message.reply_text("Добро пожаловать в тайное меню:", reply_markup=reply_markup)
+        await update.message.reply_text("Добро пожаловать в тайное меню:", reply_markup=reply_markup)
     else:
-        update.message.reply_text("Королева не доверяет тебе...")
+        await update.message.reply_text("Королева не доверяет тебе...")
 
-def button(update, context):
+async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    query.answer()
+    await query.answer()
     if query.data == 'knowledge':
-        query.edit_message_text(text="📜 Тайные знания: будь мудр и осторожен.")
+        await query.edit_message_text(text="📜 Тайные знания: будь мудр и осторожен.")
     elif query.data == 'commands':
-        query.edit_message_text(text="🗡️ Секретные команды: сила в твоих руках.")
+        await query.edit_message_text(text="🗡️ Секретные команды: сила в твоих руках.")
     elif query.data == 'treasures':
-        query.edit_message_text(text="💎 Сокровища: ценность скрыта в знании.")
+        await query.edit_message_text(text="💎 Сокровища: ценность скрыта в знании.")
 
 def main():
     TOKEN = os.getenv("BOT_TOKEN")
-    updater = Updater(TOKEN)
-    dp = updater.dispatcher
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, secret))
-    dp.add_handler(CallbackQueryHandler(button))
-    updater.start_polling()
-    updater.idle()
+    app = ApplicationBuilder().token(TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, secret))
+    app.add_handler(CallbackQueryHandler(button))
+
+    app.run_polling()
 
 if __name__ == "__main__":
     main()
