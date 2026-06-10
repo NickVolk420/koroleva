@@ -31,7 +31,7 @@ async def secret_or_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_text("Добро пожаловать в тайне меню:", reply_markup=reply_markup)
     else:
-        reply = await chat_with_ai(text)
+        reply = await chat_with_ai(text)   # ← тут виклик до Hugging Face
         await update.message.reply_text(f"Королева каже: {reply}")
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
