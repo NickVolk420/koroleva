@@ -1,0 +1,42 @@
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
+
+SECRET_PASSWORD = "royalpass"
+
+def start(update, context):
+    update.message.reply_text("Приветствую! Я Королева 👑")
+
+def secret(update, context):
+    text = update.message.text.strip()
+    if text == SECRET_PASSWORD:
+        keyboard = [
+            [InlineKeyboardButton("Тайные знания 👑", callback_data='knowledge')],
+            [InlineKeyboardButton("Секретные команды 🗡️", callback_data='commands')],
+            [InlineKeyboardButton("Сокровища 💎", callback_data='treasures')]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        update.message.reply_text("Добро пожаловать в тайное меню:", reply_markup=reply_markup)
+    else:
+        update.message.reply_text("Королева не доверяет тебе...")
+
+def button(update, context):
+    query = update.callback_query
+    query.answer()
+    if query.data == 'knowledge':
+        query.edit_message_text(text="📜 Тайные знания: будь мудр и осторожен.")
+    elif query.data == 'commands':
+        query.edit_message_text(text="🗡️ Секретные команды: сила в твоих руках.")
+    elif query.data == 'treasures':
+        query.edit_message_text(text="💎 Сокровища: ценность скрыта в знании.")
+
+def main():
+    updater = Updater("YOUR_API_TOKEN", use_context=True)
+    dp = updater.dispatcher
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, secret))
+    dp.add_handler(CallbackQueryHandler(button))
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == "__main__":
+    main()
