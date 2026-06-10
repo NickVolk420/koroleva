@@ -1,9 +1,8 @@
 import os
-TOKEN = os.getenv("BOT_TOKEN")
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
+from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 
-SECRET_PASSWORD = "royalpass"
+SECRET_PASSWORD = "снимай труси"
 
 def start(update, context):
     update.message.reply_text("Приветствую! Я Королева 👑")
@@ -32,10 +31,11 @@ def button(update, context):
         query.edit_message_text(text="💎 Сокровища: ценность скрыта в знании.")
 
 def main():
-    updater = Updater("YOUR_API_TOKEN", use_context=True)
+    TOKEN = os.getenv("BOT_TOKEN")
+    updater = Updater(TOKEN)
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, secret))
+    dp.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, secret))
     dp.add_handler(CallbackQueryHandler(button))
     updater.start_polling()
     updater.idle()
