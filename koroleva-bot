@@ -1,11 +1,31 @@
 import os
+import requests
+
+HF_TOKEN = os.getenv("HF_TOKEN")
+
+async def chat_with_ai(text):
+    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+    payload = {"inputs": text}
+    response = requests.post(
+        "https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill",
+        headers=headers,
+        json=payload
+    )
+    data = response.json()
+    return data[0]["generated_text"]
+
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
 
-SECRET_PASSWORD = "royalpass"
+async def secret_or_ai(update, context):
+    text = update.message.text.strip()
+    if text == "снимай труси":
+        # показати меню
+        ...
+    else:
+        reply = await chat_with_ai(text)
+        await update.message.reply_text(f"Королева каже: {reply}")
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Приветствую! Я Королева 👑")
 
 async def secret(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
